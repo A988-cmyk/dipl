@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Berufsvergleich</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f5f5f5;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    .result {
+      font-weight: bold;
+    }
+    .highlight {
+      background-color: #d0f0c0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Berufsvergleichs-Tool</h1>
+  <p>Gib deine persönliche Gewichtung (1–10) für jedes Kriterium ein:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Kriterium</th>
+        <th>Gewichtung</th>
+      </tr>
+    </thead>
+    <tbody id="weights">
+      <tr><td>Gehalt (in €/Jahr)</td><td><input type="number" min="0" max="10" value="8"></td></tr>
+      <tr><td>Work-Life-Balance</td><td><input type="number" min="0" max="10" value="7"></td></tr>
+      <tr><td>Flexibilität</td><td><input type="number" min="0" max="10" value="6"></td></tr>
+      <tr><td>Jobsicherheit</td><td><input type="number" min="0" max="10" value="9"></td></tr>
+      <tr><td>Karrierechancen</td><td><input type="number" min="0" max="10" value="6"></td></tr>
+    </tbody>
+  </table>
+  <button onclick="calculateScores()">Vergleich starten</button>
+
+  <h2>Ergebnisse</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Beruf</th>
+        <th>Gehalt</th>
+        <th>Work-Life-Balance</th>
+        <th>Flexibilität</th>
+        <th>Jobsicherheit</th>
+        <th>Karrierechancen</th>
+        <th>Gesamtscore</th>
+      </tr>
+    </thead>
+    <tbody id="results"></tbody>
+  </table>
+
+  <script>
+    const jobs = [
+      {
+        name: "Controller",
+        gehalt: 65000,
+        wlb: 7,
+        flexibilitaet: 6,
+        sicherheit: 9,
+        karriere: 7
+      },
+      {
+        name: "Datenanalyst",
+        gehalt: 70000,
+        wlb: 6,
+        flexibilitaet: 7,
+        sicherheit: 8,
+        karriere: 8
+      },
+      {
+        name: "Steuerberater",
+        gehalt: 75000,
+        wlb: 5,
+        flexibilitaet: 5,
+        sicherheit: 10,
+        karriere: 9
+      },
+      {
+        name: "Investment Analyst",
+        gehalt: 85000,
+        wlb: 4,
+        flexibilitaet: 5,
+        sicherheit: 7,
+        karriere: 10
+      }
+    ];
+
+    function normalizeSalary(value) {
+      const max = 100000, min = 60000;
+      return ((value - min) / (max - min)) * 10;
+    }
+
+    function calculateScores() {
+      const inputs = document.querySelectorAll("#weights input");
+      const weights = Array.from(inputs).map(el => Number(el.value));
+      const [wGehalt, wWLB, wFlex, wSicher, wKarriere] = weights;
+
+      const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+
+      const results = jobs.map(job => {
+        const normalizedGehalt = normalizeSalary(job.gehalt);
+        const score = (
+          normalizedGehalt * wGehalt +
+          job.wlb * wWLB +
+          job.flexibilitaet * wFlex +
+          job.sicherheit * wSicher +
+          job.karriere * wKarriere
+        ) / totalWeight;
+
+        return { ...job, score: score.toFixed(2) };
+      }).sort((a, b) => b.score - a.score);
+
+      const tbody = document.getElementById("results");
+      tbody.innerHTML = "";
+      results.forEach((job, index) => {
+        const row = document.createElement("tr");
+        if (index === 0) row.classList.add("highlight");
+        row.innerHTML = `
+          <td>${job.name}</td>
+          <td>${job.gehalt.toLocaleString()} €</td>
+          <td>${job.wlb}</td>
+          <td>${job.flexibilitaet}</td>
+          <td>${job.sicherheit}</td>
+          <td>${job.karriere}</td>
+          <td class="result">${job.score}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>
